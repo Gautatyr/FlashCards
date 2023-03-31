@@ -12,7 +12,7 @@ public static class Menus
     {
         Console.Clear();
 
-        Console.WriteLine($"\n{message}");
+        if (message != "") Console.WriteLine($"\n{message}");
 
         Console.WriteLine("\nMAIN MENU\n");
         Console.WriteLine("- Type 1 to access the Stacks menu");
@@ -39,13 +39,68 @@ public static class Menus
         }
     }
 
-    private static void StacksMenu()
+    private static void StacksMenu(string message = "")
     {
+        Console.Clear();
 
+        if (message != "") Console.WriteLine($"\n{message}");
+
+        Console.WriteLine("\nSTACKS\n");
+        Console.WriteLine("- Type 1 Create a new stack");
+        Console.WriteLine("- Type 2 to View your stacks");
+        Console.WriteLine("- Type 3 Modify your stacks"); // Comprise both CRUD Update and Delete
+        Console.WriteLine("- Type 0 Return to the main menu");
+
+        string userInput = Console.ReadLine();  // Need improvments
+
+        switch (userInput)
+        {
+            case "0":
+                MainMenu();
+                break;
+            case "1":
+               // CreateStacks();
+                break;
+            case "2":
+               // ViewStacks();
+                break;
+            case "3":
+               // ModifyStacks();
+                break;
+            default:
+                // DisplayError("Wrong input ! Please type a number between 0 and 2")
+                StacksMenu("Wrong input ! Please type a number between 0 and 3");
+                break;
+        }
     }
 
-    private static void StudySessionsMenu()
+    private static void StudySessionsMenu(string message = "")
     {
+        Console.Clear();
 
+        if (message != "") Console.WriteLine($"\n{message}");
+        Console.WriteLine("\nSTUDY SESSIONS\n");
+        Console.WriteLine("- Type 1 to Start a Study Session");
+        Console.WriteLine("- Type 2 to View Sessions history");
+        Console.WriteLine("- Type 0 Return to the main menu");
+
+        string userInput = Console.ReadLine();  // Need improvments
+
+        switch (userInput)
+        {
+            case "0":
+                MainMenu();
+                break;
+            case "1":
+                // StartStudySession();
+                break;
+            case "2":
+                // ViewStudySesssionsHistory();
+                break;
+            default:
+                // DisplayError("Wrong input ! Please type a number between 0 and 2")
+                StacksMenu("Wrong input ! Please type a number between 0 and 3");
+                break;
+        }
     }
 }
