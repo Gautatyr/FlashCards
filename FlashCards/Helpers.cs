@@ -4,9 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FlashCards
+namespace FlashCards;
+
+public static class Helpers
 {
-    internal class Helpers
+    public static string DisplayError(string error)
     {
+        string arrowLeft = "\n|---> ";
+        string arrowRight = " <---|\n";
+        return arrowLeft + error + arrowRight;
     }
 }
