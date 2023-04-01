@@ -1,6 +1,8 @@
 ﻿using static FlashCards.Helpers;
 using static FlashCards.DataValidation;
 using static FlashCards.DataAccess;
+using ConsoleTableExt;
+using FlashCards.Models;
 
 namespace FlashCards;
 
@@ -57,7 +59,18 @@ public static class Menus
                 CreateStack();
                 break;
             case 2:
-               // ViewStacks();
+                DisplayStacks();
+                
+                int stackId = GetNumberInput("\nType the ID of the stack you want to inspect, or type 0 to return to the stack menu.");
+
+                while(stackId != 0)
+                {
+                    DisplayStacks();
+                    InspectStack(stackId);
+                    stackId = GetNumberInput("\nType the ID of the stack you want to inspect, or type 0 to return to the stack menu.");
+                }
+                
+                StacksMenu();
                 break;
             case 3:
                // UpdateStacks();
@@ -102,6 +115,24 @@ public static class Menus
         string answer = GetTextInput("Type the card's answer.");
 
         InsertCard(stackTheme, question, answer);
+    }
+
+    private static void DisplayStacks()
+    {
+        Console.Clear();
+
+        Console.WriteLine("\nSTACKS\n");
+
+        ConsoleTableBuilder.From(GetStacks()).ExportAndWriteLine();
+    }
+
+    private static void InspectStack(int stackId)
+    {
+        StackCardsDTO stackCards = GetStack(stackId);
+
+        Console.WriteLine($"\n{stackCards.Theme.ToUpper()}\n");
+
+        ConsoleTableBuilder.From(stackCards.CardsDTO).ExportAndWriteLine();
     }
 
     // Need to be done

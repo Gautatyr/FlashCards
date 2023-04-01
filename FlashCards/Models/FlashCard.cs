@@ -1,9 +1,17 @@
 ﻿namespace FlashCards.Models;
 
-internal class FlashCard
+public class Card
 {
     public int Id { get; set; }
     public string Question { get; set; }
     public string Answer { get; set; }
     public int StackId { get; set; }
 }
+
+public class CardDTO
+{
+    public int Id { get; set; }
+    public string Question { get; set; }
+    public string Answer { get; set; }
+}
+

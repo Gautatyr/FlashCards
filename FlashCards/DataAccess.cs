@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using static FlashCards.Helpers;
+using FlashCards.Models;
 
 
 namespace FlashCards;
@@ -14,109 +15,8 @@ public static class DataAccess
 
     public static void InitializeDatabase()
     {
-        CreateDb();
+        CreateDatabase();
         CreateTables();
-    }
-
-    private static void CreateDb()
-    {
-        SqlConnection connection = new SqlConnection(connectionString);
-
-        string sqlString =
-            $@"IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '{dbName}')
-            BEGIN
-                CREATE DATABASE {dbName} ON PRIMARY
-                (NAME = {dbName}_Data, FILENAME = '{dbFilePath}{dbName}.mdf',
-                SIZE = 2MB, MAXSIZE = 10MB, FILEGROWTH = 10%)
-                LOG ON (NAME = {dbName}_log,
-                FILENAME = '{dbFilePath}{dbName}.ldf',
-                SIZE = 1MB, MAXSIZE = 5MB, FILEGROWTH = 10%)
-            END";
-
-        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
-
-        try
-        {
-            connection.Open();
-            sqlCommand.ExecuteNonQuery();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
-            Console.ReadLine();
-        }
-        finally
-        {
-            if (connection.State == ConnectionState.Open)
-            {
-                connection.Close();
-            }
-        }
-    }
-
-    public static void CreateTables()
-    {
-        SqlConnection connection = new SqlConnection(connectionString);
-
-        string createStacksTable =
-            $@"IF NOT EXISTS (SELECT * FROM sysobjects
-            WHERE name='Stacks' and xtype='U')
-            CREATE TABLE Stacks (
-                StackID int NOT NULL IDENTITY PRIMARY KEY,
-                Theme nvarchar(50) NOT NULL)";
-
-        SqlCommand sqlCommandStacks = new SqlCommand(createStacksTable, connection);
-
-        string createCardsTable =
-            $@"IF NOT EXISTS (SELECT * FROM sysobjects
-            WHERE name='Cards' and xtype='U')
-            CREATE TABLE Cards (
-                CardID int NOT NULL IDENTITY PRIMARY KEY,
-                Question Text NOT NULL,
-                Answer Text NOT NULL,
-                StackID int NOT NULL,
-                CONSTRAINT FK_StackCard FOREIGN KEY (StackID)
-                REFERENCES Stacks(StackID)
-                ON DELETE CASCADE
-                ON UPDATE CASCADE)";
-
-        SqlCommand sqlCommandCards = new SqlCommand(createCardsTable, connection);
-
-        string createStudySessionsTable =
-            $@"IF NOT EXISTS (SELECT * FROM sysobjects
-            WHERE name='StudySessions' and xtype='U')
-            CREATE TABLE StudySessions (
-                StudySessionsID int NOT NULL IDENTITY PRIMARY KEY,
-                Date Text NOT NULL,
-                Score Text NOT NULL,
-                StackID int NOT NULL,
-                CONSTRAINT FK_StackStudySession FOREIGN KEY (StackID)
-                REFERENCES Stacks(StackID)
-                ON DELETE CASCADE
-                ON UPDATE CASCADE)";
-
-        SqlCommand sqlCommandStudySessions = new SqlCommand(createStudySessionsTable, connection);
-
-        try
-        {
-            connection.Open();
-
-            sqlCommandStacks.ExecuteNonQuery();
-            sqlCommandCards.ExecuteNonQuery();
-            sqlCommandStudySessions.ExecuteNonQuery();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
-            Console.ReadLine();
-        }
-        finally
-        {
-            if (connection.State == ConnectionState.Open)
-            {
-                connection.Close();
-            }
-        }
     }
 
     public static void InsertStack(string theme)
@@ -188,6 +88,96 @@ public static class DataAccess
         }
     }
 
+    public static List<Stack> GetStacks()
+    {
+        List<Stack> stacks = new List<Stack>();
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT * FROM Stacks";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                stacks.Add(new Stack
+                {
+                    Id = reader.GetInt32(0),
+                    Theme = reader.GetString(1)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return stacks;
+    }
+
+    public static StackCardsDTO GetStack(int stackId)
+    {
+        StackCardsDTO stackCards = new StackCardsDTO();
+
+        List<CardDTO> cardsDTO = new List<CardDTO>();
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT * FROM Cards WHERE StackID={stackId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                cardsDTO.Add(new CardDTO
+                {
+                    Id = reader.GetInt32(0),
+                    Question = reader.GetString(1),
+                    Answer = reader.GetString(2),
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        stackCards.Theme = GetStackTheme(stackId);
+        stackCards.CardsDTO = cardsDTO;
+
+        return stackCards;
+    }
+
     private static int GetStackId(string stackTheme)
     {
         stackTheme = SafeTextSql(stackTheme);
@@ -226,5 +216,144 @@ public static class DataAccess
         }
 
         return stackId;
+    }
+
+    private static string GetStackTheme(int stackId)
+    {
+        string stackTheme = "";
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT Theme FROM Stacks
+            WHERE StackID='{stackId}'";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                stackTheme = reader.GetString(0);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return stackTheme;
+    }
+
+    private static void CreateDatabase()
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '{dbName}')
+            BEGIN
+                CREATE DATABASE {dbName} ON PRIMARY
+                (NAME = {dbName}_Data, FILENAME = '{dbFilePath}{dbName}.mdf',
+                SIZE = 2MB, MAXSIZE = 10MB, FILEGROWTH = 10%)
+                LOG ON (NAME = {dbName}_log,
+                FILENAME = '{dbFilePath}{dbName}.ldf',
+                SIZE = 1MB, MAXSIZE = 5MB, FILEGROWTH = 10%)
+            END";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    private static void CreateTables()
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string createStacksTable =
+            $@"IF NOT EXISTS (SELECT * FROM sysobjects
+            WHERE name='Stacks' and xtype='U')
+            CREATE TABLE Stacks (
+                StackID int NOT NULL IDENTITY PRIMARY KEY,
+                Theme nvarchar(50) NOT NULL)";
+
+        SqlCommand sqlCommandStacks = new SqlCommand(createStacksTable, connection);
+
+        string createCardsTable =
+            $@"IF NOT EXISTS (SELECT * FROM sysobjects
+            WHERE name='Cards' and xtype='U')
+            CREATE TABLE Cards (
+                CardID int NOT NULL IDENTITY PRIMARY KEY,
+                Question Text NOT NULL,
+                Answer Text NOT NULL,
+                StackID int NOT NULL,
+                CONSTRAINT FK_StackCard FOREIGN KEY (StackID)
+                REFERENCES Stacks(StackID)
+                ON DELETE CASCADE
+                ON UPDATE CASCADE)";
+
+        SqlCommand sqlCommandCards = new SqlCommand(createCardsTable, connection);
+
+        string createStudySessionsTable =
+            $@"IF NOT EXISTS (SELECT * FROM sysobjects
+            WHERE name='StudySessions' and xtype='U')
+            CREATE TABLE StudySessions (
+                StudySessionsID int NOT NULL IDENTITY PRIMARY KEY,
+                Date Text NOT NULL,
+                Score Text NOT NULL,
+                StackID int NOT NULL,
+                CONSTRAINT FK_StackStudySession FOREIGN KEY (StackID)
+                REFERENCES Stacks(StackID)
+                ON DELETE CASCADE
+                ON UPDATE CASCADE)";
+
+        SqlCommand sqlCommandStudySessions = new SqlCommand(createStudySessionsTable, connection);
+
+        try
+        {
+            connection.Open();
+
+            sqlCommandStacks.ExecuteNonQuery();
+            sqlCommandCards.ExecuteNonQuery();
+            sqlCommandStudySessions.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
     }
 }
