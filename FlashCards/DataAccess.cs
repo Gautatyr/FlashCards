@@ -178,6 +178,97 @@ public static class DataAccess
         return stackCards;
     }
 
+    public static void UpdateStackTheme(int stackId, string stackNewTheme)
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"UPDATE Stacks SET Theme='{stackNewTheme}' WHERE StackId={stackId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+            Console.WriteLine($"\nThe stack theme has been updated successfully !\n");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    public static void UpdateCardQuestion(int cardId, string newQuestion)
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        newQuestion = SafeTextSql(newQuestion);
+
+        string sqlString =
+            $@"UPDATE Cards SET Question='{newQuestion}' WHERE CardId={cardId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+            Console.WriteLine($"\nThe card's question has been updated successfully !\n");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    public static void UpdateCardAnswer(int cardId, string newAnswer)
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        newAnswer = SafeTextSql(newAnswer);
+
+        string sqlString =
+            $@"UPDATE Cards SET Answer = '{newAnswer}' WHERE CardId={cardId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+            Console.WriteLine($"\nThe card's answer has been updated successfully !\n");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
     private static int GetStackId(string stackTheme)
     {
         stackTheme = SafeTextSql(stackTheme);

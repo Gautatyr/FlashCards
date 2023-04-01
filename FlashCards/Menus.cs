@@ -73,7 +73,19 @@ public static class Menus
                 StacksMenu();
                 break;
             case 3:
-               // UpdateStacks();
+                DisplayStacks();
+
+                stackId = GetNumberInput("\nType the ID of the stack you want to Update, or type 0 to return to the stack menu.");
+
+                while (stackId != 0)
+                {
+                    InspectStack(stackId);
+                    UpdateStack(stackId);
+                    DisplayStacks();
+                    stackId = GetNumberInput("\nType the ID of the stack you want to Update, or type 0 to return to the stack menu.");
+                }
+
+                StacksMenu();
                 break;
             case 4:
                 // DeleteStacks();
@@ -82,6 +94,79 @@ public static class Menus
                 string error = "Wrong input ! Please type a number between 0 and 3";
                 StacksMenu(DisplayError(error));
                 break;
+        }
+    }
+
+    private static void UpdateStack(int stackId)
+    {
+        Console.WriteLine("\nMODIFY STACK\n");
+        Console.WriteLine("- Type 1 to Modify the stack's theme");
+        Console.WriteLine("- Type 2 to Add a card");
+        Console.WriteLine("- Type 3 to Modify a card");
+        Console.WriteLine("- Type 4 to Delete a card");
+        Console.WriteLine("- Type 0 to go back to the stack menu");
+
+        switch (GetNumberInput())
+        {
+            case 0:
+                StacksMenu();
+                break;
+            case 1:
+                Console.Clear();
+
+                string stackNewTheme = GetTextInput($"\nType the stack's new theme");
+
+                UpdateStackTheme(stackId, stackNewTheme);
+
+                UpdateStack(stackId);
+                break;
+            case 2:
+
+                break;
+            case 3:
+                InspectStack(stackId);
+
+                int cardId = GetNumberInput("Type in the card's id you wish to Update, or type 0 to get back to the stacks menu.");
+
+                while (cardId != 0)
+                {
+                    UpdateCard(stackId, cardId);
+                    InspectStack(stackId);
+                    cardId = GetNumberInput("Type in the card's id you wish to Update, or type 0 to get back to the stacks menu.");
+                }
+                break;
+            case 4:
+                break;
+            default:
+                string error = "Wrong input ! Please type a number between 0 and 2";
+                StacksMenu(DisplayError(error));
+                break;
+        }
+    }
+
+    private static void UpdateCard(int stackId, int cardId)
+    {
+        int answer = GetNumberInput("Type 1 to update the question, 2 to update the answer or 0 to go back to the menu.");
+
+        while (answer != 0)
+        {
+            Console.Clear();
+
+            InspectStack(stackId); // change this to inspect the particular card
+
+            switch (answer)
+            {
+                case 1:
+                    string question = GetTextInput("Type the new question");
+                    UpdateCardQuestion(cardId, question);
+                    break;
+                case 2:
+                    string questionAnswer = GetTextInput("Type the new answer");
+                    UpdateCardAnswer(cardId, questionAnswer);
+                    break;
+            }
+
+            answer = GetNumberInput("Type 1 to update the question, 2 to update the answer or 0 to go back to the stack.");
         }
     }
 
@@ -129,6 +214,8 @@ public static class Menus
     private static void InspectStack(int stackId)
     {
         StackCardsDTO stackCards = GetStack(stackId);
+
+        Console.Clear(); 
 
         Console.WriteLine($"\n{stackCards.Theme.ToUpper()}\n");
 
