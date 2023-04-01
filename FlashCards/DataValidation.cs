@@ -24,4 +24,19 @@ internal class DataValidation
         }
         return number;
     }
+
+    public static string GetTextInput(string message = "")
+    {
+        Console.WriteLine(message);
+        string textInput = Console.ReadLine();
+
+        while(string.IsNullOrEmpty(textInput))
+        {
+            Console.WriteLine(DisplayError("Input can't be empty !"));
+            Console.WriteLine(message);
+            textInput = Console.ReadLine();
+        }
+
+        return textInput;
+    }
 }

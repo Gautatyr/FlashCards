@@ -2,6 +2,6 @@
 using static FlashCards.DataAccess;
 
 
-InitDb();
+InitializeDatabase();
 
 MainMenu("Welcome to the flashcard app !");

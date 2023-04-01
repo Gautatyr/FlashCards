@@ -14,4 +14,10 @@ public static class Helpers
         string arrowRight = " <---|\n";
         return arrowLeft + error + arrowRight;
     }
+
+    public static string SafeTextSql(string text)
+    {
+        text = text.Replace("'", " ");
+        return text;
+    }
 }
