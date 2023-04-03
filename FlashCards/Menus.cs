@@ -63,12 +63,10 @@ public static class Menus
                 
                 int stackId = GetNumberInput("\nType the ID of the stack you want to inspect, or type 0 to return to the stack menu.");
 
-                while(stackId != 0)
-                {
-                    DisplayStacks();
-                    InspectStack(stackId);
-                    stackId = GetNumberInput("\nType the ID of the stack you want to inspect, or type 0 to return to the stack menu.");
-                }
+                InspectStack(stackId);
+
+                Console.WriteLine("\nPress Enter to go back to the stack menu.");
+                Console.ReadLine();
                 
                 StacksMenu();
                 break;
@@ -79,7 +77,6 @@ public static class Menus
 
                 while (stackId != 0)
                 {
-                    InspectStack(stackId);
                     UpdateStack(stackId);
                     DisplayStacks();
                     stackId = GetNumberInput("\nType the ID of the stack you want to Update, or type 0 to return to the stack menu.");
@@ -99,6 +96,8 @@ public static class Menus
 
     private static void UpdateStack(int stackId)
     {
+        InspectStack(stackId);
+
         Console.WriteLine("\nMODIFY STACK\n");
         Console.WriteLine("- Type 1 to Modify the stack's theme");
         Console.WriteLine("- Type 2 to Add a card");
@@ -126,13 +125,13 @@ public static class Menus
             case 3:
                 InspectStack(stackId);
 
-                int cardId = GetNumberInput("Type in the card's id you wish to Update, or type 0 to get back to the stacks menu.");
+                int cardId = GetNumberInput("\nType in the card's id you wish to Update, or type 0 to get back to the stacks menu.\n");
 
                 while (cardId != 0)
                 {
                     UpdateCard(stackId, cardId);
                     InspectStack(stackId);
-                    cardId = GetNumberInput("Type in the card's id you wish to Update, or type 0 to get back to the stacks menu.");
+                    cardId = GetNumberInput("\nType in the card's id you wish to Update, or type 0 to get back to the stacks menu.\n");
                 }
                 break;
             case 4:
@@ -166,6 +165,8 @@ public static class Menus
                     break;
             }
 
+            InspectStack(stackId);
+
             answer = GetNumberInput("Type 1 to update the question, 2 to update the answer or 0 to go back to the stack.");
         }
     }
@@ -174,7 +175,7 @@ public static class Menus
     {
         Console.WriteLine("\nSTACK CREATION\n");
 
-        string stackTheme = GetTextInput("Type the theme of the new stack, or type 0 to go back to the stack menu.");
+        string stackTheme = GetTextInput("Type the theme of the new stack, or type 0 to go back to the stack menu.\n");
 
         if (stackTheme == "0") StacksMenu();
 
@@ -186,7 +187,7 @@ public static class Menus
         while(continueToAddCard == "1")
         {
             AddCard(stackTheme);
-            Console.WriteLine("Type 1 to add another card, else press enter.");
+            Console.WriteLine("\nType 1 to add another card, else press enter.\n");
             continueToAddCard = Console.ReadLine();
         }
 
@@ -195,9 +196,11 @@ public static class Menus
 
     private static void AddCard(string stackTheme)
     {
-        string question = GetTextInput("Type the card's question.");
+        string question = GetTextInput("\nType the card's question.\n");
 
-        string answer = GetTextInput("Type the card's answer.");
+        string answer = GetTextInput("\nType the card's answer.\n");
+
+        Console.Clear() ;
 
         InsertCard(stackTheme, question, answer);
     }
