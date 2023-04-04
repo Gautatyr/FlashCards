@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static FlashCards.Helpers;
+﻿using static FlashCards.Helpers;
+using static FlashCards.DataAccess;
+using static FlashCards.Menus;
 
 namespace FlashCards;
 
@@ -19,7 +16,7 @@ internal class DataValidation
         while (!int.TryParse(userInput, out number)) 
         {
             string error = $"{userInput} is not a valid number. Please try again.";
-            Console.WriteLine(DisplayError(error));
+            DisplayError(error);
             userInput = Console.ReadLine();
         }
         return number;
@@ -32,11 +29,48 @@ internal class DataValidation
 
         while(string.IsNullOrEmpty(textInput))
         {
-            Console.WriteLine(DisplayError("Input can't be empty !"));
+            DisplayError("Input can't be empty !");
             Console.WriteLine(message);
             textInput = Console.ReadLine();
         }
 
         return textInput;
+    }
+
+    // Return only valid stack Id or 0
+    public static int GetStackIdInput(string message = "")
+    {
+        DisplayStacks();
+
+        int stackId = GetNumberInput(message);
+
+        while (!StackExists(stackId) && stackId != 0)
+        {
+            DisplayStacks();
+
+            Console.WriteLine(DisplayError($"The id: {stackId} is invalid"));
+
+            stackId = GetNumberInput(message);
+        }
+
+        return stackId;
+    }
+
+    public static int GetCardIdInput(int stackId, string message = "")
+    {
+        InspectStack(stackId);
+
+        int cardId = GetNumberInput(message);
+
+        while (!CardExists(cardId, stackId) && cardId != 0)
+        {
+            InspectStack(stackId);
+
+            Console.WriteLine(DisplayError($"The id: {cardId} is invalid"));
+
+            cardId = GetNumberInput(message);
+        }
+
+        return cardId;
     }
 }

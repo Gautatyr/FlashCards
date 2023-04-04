@@ -12,7 +12,7 @@ public static class Helpers
     {
         string arrowLeft = "\n|---> ";
         string arrowRight = " <---|\n";
-        return arrowLeft + error + arrowRight;
+        return $"{arrowLeft} {error} {arrowRight}";
     }
 
     public static string SafeTextSql(string text)

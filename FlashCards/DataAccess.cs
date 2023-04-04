@@ -157,7 +157,7 @@ public static class DataAccess
                     Question = reader.GetString(1),
                     Answer = reader.GetString(2),
                 });
-            }
+            } 
         }
         catch (Exception ex)
         {
@@ -178,12 +178,54 @@ public static class DataAccess
         return stackCards;
     }
 
+    public static CardDTO GetCard(int stackId, int cardId)
+    {
+        CardDTO card = new CardDTO();
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT * FROM Cards WHERE StackID={stackId} AND CardId={cardId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                card.Id = reader.GetInt32(0);
+                card.Question = reader.GetString(1);
+                card.Answer = reader.GetString(2);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return card;
+    }
+
     public static void UpdateStackTheme(int stackId, string stackNewTheme)
     {
         SqlConnection connection = new SqlConnection(connectionString);
 
+        string stackNewThemeCleaned = SafeTextSql(stackNewTheme);
+
         string sqlString =
-            $@"UPDATE Stacks SET Theme='{stackNewTheme}' WHERE StackId={stackId}";
+            $@"UPDATE Stacks SET Theme='{stackNewThemeCleaned}' WHERE StackId={stackId}";
 
         SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
 
@@ -269,7 +311,36 @@ public static class DataAccess
         }
     }
 
-    private static int GetStackId(string stackTheme)
+    public static void DeleteCard(int cardId)
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"DELETE FROM Cards WHERE CardId={cardId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+            Console.WriteLine($"\nThe card has been Deleted !\n");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    public static int GetStackId(string stackTheme)
     {
         stackTheme = SafeTextSql(stackTheme);
 
@@ -288,7 +359,7 @@ public static class DataAccess
             connection.Open();
             SqlDataReader reader = sqlCommand.ExecuteReader();
 
-            while(reader.Read())
+            while (reader.Read())
             {
                 stackId = reader.GetInt32(0);
             }
@@ -309,7 +380,7 @@ public static class DataAccess
         return stackId;
     }
 
-    private static string GetStackTheme(int stackId)
+    public static string GetStackTheme(int stackId)
     {
         string stackTheme = "";
 
@@ -345,6 +416,103 @@ public static class DataAccess
         }
 
         return stackTheme;
+    }
+
+    public static void DeleteStack(int stackId)
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"DELETE FROM Stacks WHERE StackId={stackId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+            Console.WriteLine($"\nThe stack has been Deleted !\n");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
+    public static bool CardExists(int cardId, int stackId)
+    {
+        bool cardExists = false;
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT COUNT (*) FROM Cards WHERE cardID={cardId} AND stackId={stackId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            int cardCount = Convert.ToInt32(sqlCommand.ExecuteScalar());
+
+            if (cardCount > 0) cardExists = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return cardExists;
+    }
+
+    public static bool StackExists(int stackId)
+    {
+        bool stackExists = false;
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT COUNT (*) FROM Stacks WHERE stackId={stackId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            int stackCount = Convert.ToInt32(sqlCommand.ExecuteScalar());
+
+            if (stackCount > 0) stackExists = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return stackExists;
     }
 
     private static void CreateDatabase()
