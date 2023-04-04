@@ -3,7 +3,8 @@ using System.Data;
 using System.Data.SqlClient;
 using static FlashCards.Helpers;
 using FlashCards.Models;
-
+using System.Globalization;
+using System.Diagnostics;
 
 namespace FlashCards;
 
@@ -88,6 +89,35 @@ public static class DataAccess
         }
     }
 
+    public static void CreateStudySession(int stackId, string score)
+    {
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"INSERT INTO StudySessions(Date, Score, StackID)
+            VALUES('{DateTime.Now}', '{score}', {stackId})";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            sqlCommand.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+    }
+
     public static List<Stack> GetStacks()
     {
         List<Stack> stacks = new List<Stack>();
@@ -156,7 +186,7 @@ public static class DataAccess
                     Id = reader.GetInt32(0),
                     Question = reader.GetString(1),
                     Answer = reader.GetString(2),
-                });
+                }); 
             } 
         }
         catch (Exception ex)
@@ -216,6 +246,81 @@ public static class DataAccess
         }
 
         return card;
+    }
+
+    public static List<StudySessionDTO> GetStudySessions()
+    {
+        List<StudySessionDTO> studySessionDTOs = new List<StudySessionDTO>();
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT * FROM StudySessions";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                studySessionDTOs.Add(new StudySessionDTO
+                {
+                    Date = DateTime.Parse(reader.GetString(1)),
+                    Score = reader.GetString(2),
+                    StackTheme = GetStackTheme(reader.GetInt32(3))
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return studySessionDTOs;
+    }
+
+    public static int GetNumberOfCards(int stackId)
+    {
+        int numberOfCards = 0;
+
+        SqlConnection connection = new SqlConnection(connectionString);
+
+        string sqlString =
+            $@"SELECT COUNT (*) FROM Cards WHERE stackId={stackId}";
+
+        SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
+
+        try
+        {
+            connection.Open();
+            numberOfCards = Convert.ToInt32(sqlCommand.ExecuteScalar());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{ex}\n\nPress Enter to continue.");
+            Console.ReadLine();
+        }
+        finally
+        {
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        return numberOfCards;
     }
 
     public static void UpdateStackTheme(int stackId, string stackNewTheme)

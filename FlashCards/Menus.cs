@@ -3,6 +3,7 @@ using static FlashCards.DataValidation;
 using static FlashCards.DataAccess;
 using ConsoleTableExt;
 using FlashCards.Models;
+using System.Threading.Tasks.Sources;
 
 namespace FlashCards;
 
@@ -227,6 +228,15 @@ public static class Menus
 
         string stackTheme = GetTextInput("Type the theme of the new stack, or type 0 to go back to the stack menu.\n");
 
+        while (StackExists(GetStackId(stackTheme)) && stackTheme != "0")
+        {
+            Console.Clear();
+
+            Console.WriteLine(DisplayError("This theme already exists !"));
+
+            stackTheme = GetTextInput("Type the theme of the new stack, or type 0 to go back to the stack menu.\n");
+        }
+
         if (stackTheme == "0") StacksMenu();
 
         InsertStack(stackTheme);
@@ -287,7 +297,8 @@ public static class Menus
 
         Console.WriteLine($"\n{stackCards.Theme.ToUpper()}\n");
 
-        ConsoleTableBuilder.From(stackCards.CardsDTO).ExportAndWriteLine();
+        ConsoleTableBuilder.From(stackCards.CardsDTO)
+            .ExportAndWriteLine();
     }
 
     // Need to be done
@@ -296,6 +307,7 @@ public static class Menus
         Console.Clear();
 
         if (message != "") Console.WriteLine($"\n{message}");
+
         Console.WriteLine("\nSTUDY SESSIONS\n");
         Console.WriteLine("- Type 1 to Start a Study Session");
         Console.WriteLine("- Type 2 to View Sessions history");
@@ -307,15 +319,78 @@ public static class Menus
                 MainMenu();
                 break;
             case 1:
-                // StartStudySession();
+                StartStudySession();
                 break;
             case 2:
-                // ViewStudySesssionsHistory();
+                ViewStudySessions();
+
+                Console.WriteLine("\nPress enter to go back\n");
+                Console.ReadLine();
+
+                StudySessionsMenu();
                 break;
             default:
                 string error = "Wrong input ! Please type a number between 0 and 3";
                 StudySessionsMenu(DisplayError(error));
                 break;
         }
+    }
+
+    private static void ViewStudySessions()
+    {
+        Console.Clear ();
+
+        List<StudySessionDTO> studySessions = GetStudySessions();
+
+        ConsoleTableBuilder.From(studySessions)
+           .ExportAndWriteLine();
+    }
+
+    private static void StartStudySession()
+    {
+        DisplayStacks();
+
+        int stackId = GetStackIdInput("\nType the id of the stack you want to study or type 0 to go back\n");
+
+        if (stackId == 0) StudySessionsMenu();
+
+        int score = Quiz(stackId);
+
+        string formatedScore = $"{score}/{GetNumberOfCards(stackId)}";
+
+        CreateStudySession(stackId, formatedScore);
+
+        Console.WriteLine($"Your score is {formatedScore}, press enter to continue");
+        Console.ReadLine();
+
+        StartStudySession();
+    }
+
+    private static int Quiz(int stackId)
+    {
+        int score = 0;
+
+        List<CardDTO> cards = GetStack(stackId).CardsDTO;
+
+        for(int q = 0; q < GetNumberOfCards(stackId); q++)
+        {
+            Console.Clear();
+
+            Console.WriteLine(cards[q].Question);
+
+            if (GetTextInput().ToLower().Trim() == cards[q].Answer.ToLower().Trim())
+            {
+                score++;
+                Console.WriteLine("\nCorrect !\n");
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine($"\nWrong. The correct answer was: {cards[q].Answer}\n");
+                Console.ReadLine();
+            }
+        }
+
+        return score;
     }
 }
