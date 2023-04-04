@@ -13,7 +13,7 @@ internal class DataValidation
         string userInput = Console.ReadLine();
         int number;
 
-        while (!int.TryParse(userInput, out number)) 
+        while (!int.TryParse(userInput, out number))
         {
             string error = $"{userInput} is not a valid number. Please try again.";
             DisplayError(error);
@@ -27,7 +27,7 @@ internal class DataValidation
         Console.WriteLine(message);
         string textInput = Console.ReadLine();
 
-        while(string.IsNullOrEmpty(textInput))
+        while (string.IsNullOrEmpty(textInput))
         {
             DisplayError("Input can't be empty !");
             Console.WriteLine(message);

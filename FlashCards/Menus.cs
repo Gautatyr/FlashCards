@@ -3,7 +3,6 @@ using static FlashCards.DataValidation;
 using static FlashCards.DataAccess;
 using ConsoleTableExt;
 using FlashCards.Models;
-using System.Threading.Tasks.Sources;
 
 namespace FlashCards;
 
@@ -338,7 +337,7 @@ public static class Menus
 
     private static void ViewStudySessions()
     {
-        Console.Clear ();
+        Console.Clear();
 
         List<StudySessionDTO> studySessions = GetStudySessions();
 
@@ -372,7 +371,7 @@ public static class Menus
 
         List<CardDTO> cards = GetStack(stackId).CardsDTO;
 
-        for(int q = 0; q < GetNumberOfCards(stackId); q++)
+        for (int q = 0; q < GetNumberOfCards(stackId); q++)
         {
             Console.Clear();
 

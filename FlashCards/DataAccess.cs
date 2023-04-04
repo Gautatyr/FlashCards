@@ -3,8 +3,6 @@ using System.Data;
 using System.Data.SqlClient;
 using static FlashCards.Helpers;
 using FlashCards.Models;
-using System.Globalization;
-using System.Diagnostics;
 
 namespace FlashCards;
 
@@ -186,8 +184,8 @@ public static class DataAccess
                     Id = reader.GetInt32(0),
                     Question = reader.GetString(1),
                     Answer = reader.GetString(2),
-                }); 
-            } 
+                });
+            }
         }
         catch (Exception ex)
         {
