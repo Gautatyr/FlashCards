@@ -15,3 +15,8 @@ public class CardDTO
     public string Answer { get; set; }
 }
 
+public class CardNoId
+{
+    public string Question { get; set; }
+    public string Answer { get; set; }
+}

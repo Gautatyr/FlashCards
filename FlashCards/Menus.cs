@@ -177,7 +177,7 @@ public static class Menus
 
                 while (cardId != 0)
                 {
-                    DeleteCard(cardId);
+                    DeleteCard(cardId, stackId);
                     InspectStack(stackId);
                     cardId = GetCardIdInput(stackId, "\nType in the card's id you wish to Delete, or type 0 to go back.\n");
                 }
@@ -193,8 +193,6 @@ public static class Menus
 
     private static void UpdateCard(int stackId, int cardId)
     {
-        DisplayCard(stackId, cardId);
-
         int answer = GetNumberInput("\nType 1 to update the question, 2 to update the answer or 0 to go back to the menu.\n");
 
         while (answer != 0)
@@ -207,11 +205,11 @@ public static class Menus
             {
                 case 1:
                     string question = GetTextInput("\nType the new question\n");
-                    UpdateCardQuestion(cardId, question);
+                    UpdateCardQuestion(cardId, stackId, question);
                     break;
                 case 2:
                     string questionAnswer = GetTextInput("\nType the new answer\n");
-                    UpdateCardAnswer(cardId, questionAnswer);
+                    UpdateCardAnswer(cardId, stackId, questionAnswer);
                     break;
             }
 
@@ -269,18 +267,37 @@ public static class Menus
 
     public static void DisplayStacks()
     {
+        List<Stack> stackFromDatabase = GetStacks();
+        
+        List<StackCardsWithId> stacksWithIds = new List<StackCardsWithId>();
+
+        int sequenceId = 1;
+
+        foreach (var stack in stackFromDatabase)
+        {
+            stacksWithIds.Add(new StackCardsWithId
+            {
+                Theme = stack.Theme,
+                Id = sequenceId
+            });
+            sequenceId++;
+        }
+
         Console.Clear();
 
         Console.WriteLine("\nSTACKS\n");
 
-        ConsoleTableBuilder.From(GetStacks()).ExportAndWriteLine();
+        ConsoleTableBuilder.From(stacksWithIds).ExportAndWriteLine();
     }
 
     public static void DisplayCard(int stackId, int cardId)
     {
+        stackId = StackIdToRealId(stackId);
+        cardId = CardIdToRealId(cardId, stackId);
+
         Console.Clear();
 
-        List<CardDTO> card = new List<CardDTO>
+        List<CardNoId> card = new List<CardNoId>
         {
             GetCard(stackId, cardId)
         };
@@ -290,17 +307,51 @@ public static class Menus
 
     public static void InspectStack(int stackId)
     {
-        StackCardsDTO stackCards = GetStack(stackId);
+        List<Stack> stackFromDatabase = GetStacks();
+
+        int sequenceId = 1;
+
+        string chosenStackTheme = "";
+
+        foreach (var stack in stackFromDatabase)
+        {
+          if(sequenceId == stackId)
+            {
+                chosenStackTheme = stack.Theme;
+            }
+            sequenceId++;
+        }
+
+        StackCardsDTO stackCards = GetStack(GetStackId(chosenStackTheme));
 
         Console.Clear();
 
         Console.WriteLine($"\n{stackCards.Theme.ToUpper()}\n");
 
-        ConsoleTableBuilder.From(stackCards.CardsDTO)
+        List<CardDTO> cards = stackCards.CardsDTO;
+        List<CardDTO> cardsWithId = new List<CardDTO>();
+
+        sequenceId = 1;
+
+        foreach (var card in cards)
+        {
+            cardsWithId.Add(new CardDTO
+            {
+                Id = sequenceId,
+                Question = card.Question,
+                Answer = card.Answer,
+            });
+            sequenceId++;
+        }
+
+        Console.Clear();
+
+        Console.WriteLine($"\n{chosenStackTheme.ToUpper()}\n");
+
+        ConsoleTableBuilder.From(cardsWithId)
             .ExportAndWriteLine();
     }
 
-    // Need to be done
     private static void StudySessionsMenu(string message = "")
     {
         Console.Clear();
@@ -353,6 +404,8 @@ public static class Menus
 
         if (stackId == 0) StudySessionsMenu();
 
+        stackId = StackIdToRealId(stackId);
+
         int score = Quiz(stackId);
 
         string formatedScore = $"{score}/{GetNumberOfCards(stackId)}";
@@ -375,7 +428,7 @@ public static class Menus
         {
             Console.Clear();
 
-            Console.WriteLine(cards[q].Question);
+            Console.WriteLine($"\n{cards[q].Question}\n");
 
             if (GetTextInput().ToLower().Trim() == cards[q].Answer.ToLower().Trim())
             {

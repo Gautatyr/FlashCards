@@ -56,6 +56,7 @@ internal class DataValidation
         return stackId;
     }
 
+    // Return only valid card Id or 0
     public static int GetCardIdInput(int stackId, string message = "")
     {
         InspectStack(stackId);

@@ -53,7 +53,6 @@ public static class DataAccess
 
     public static void InsertCard(string stackName, string question, string answer)
     {
-        stackName = SafeTextSql(stackName);
         question = SafeTextSql(question);
         answer = SafeTextSql(answer);
 
@@ -206,9 +205,9 @@ public static class DataAccess
         return stackCards;
     }
 
-    public static CardDTO GetCard(int stackId, int cardId)
+    public static CardNoId GetCard(int stackId, int cardId)
     {
-        CardDTO card = new CardDTO();
+        CardNoId card = new CardNoId();
 
         SqlConnection connection = new SqlConnection(connectionString);
 
@@ -225,7 +224,6 @@ public static class DataAccess
 
             while (reader.Read())
             {
-                card.Id = reader.GetInt32(0);
                 card.Question = reader.GetString(1);
                 card.Answer = reader.GetString(2);
             }
@@ -352,8 +350,11 @@ public static class DataAccess
         }
     }
 
-    public static void UpdateCardQuestion(int cardId, string newQuestion)
+    public static void UpdateCardQuestion(int cardId, int stackId, string newQuestion)
     {
+        stackId = StackIdToRealId(stackId);
+        cardId = CardIdToRealId(cardId, stackId);
+
         SqlConnection connection = new SqlConnection(connectionString);
 
         newQuestion = SafeTextSql(newQuestion);
@@ -383,8 +384,11 @@ public static class DataAccess
         }
     }
 
-    public static void UpdateCardAnswer(int cardId, string newAnswer)
+    public static void UpdateCardAnswer(int cardId, int stackId, string newAnswer)
     {
+        stackId = StackIdToRealId(stackId);
+        cardId = CardIdToRealId(cardId, stackId);
+
         SqlConnection connection = new SqlConnection(connectionString);
 
         newAnswer = SafeTextSql(newAnswer);
@@ -414,8 +418,11 @@ public static class DataAccess
         }
     }
 
-    public static void DeleteCard(int cardId)
+    public static void DeleteCard(int cardId, int stackId)
     {
+        stackId = StackIdToRealId(stackId);
+        cardId = CardIdToRealId(cardId, stackId);
+
         SqlConnection connection = new SqlConnection(connectionString);
 
         string sqlString =
@@ -485,6 +492,8 @@ public static class DataAccess
 
     public static string GetStackTheme(int stackId)
     {
+        stackId = StackIdToRealId(stackId);
+
         string stackTheme = "";
 
         SqlConnection connection = new SqlConnection(connectionString);
@@ -553,6 +562,8 @@ public static class DataAccess
     public static bool CardExists(int cardId, int stackId)
     {
         bool cardExists = false;
+        stackId = StackIdToRealId(stackId);
+        cardId = CardIdToRealId(cardId, stackId);
 
         SqlConnection connection = new SqlConnection(connectionString);
 
@@ -590,8 +601,10 @@ public static class DataAccess
 
         SqlConnection connection = new SqlConnection(connectionString);
 
+        int id = StackIdToRealId(stackId);
+
         string sqlString =
-            $@"SELECT COUNT (*) FROM Stacks WHERE stackId={stackId}";
+            $@"SELECT COUNT (*) FROM Stacks WHERE stackId={id}";
 
         SqlCommand sqlCommand = new SqlCommand(sqlString, connection);
 
@@ -717,5 +730,45 @@ public static class DataAccess
                 connection.Close();
             }
         }
+    }
+
+    public static int StackIdToRealId(int id)
+    {
+        int realId = 0;
+        int sequenceId = 1;
+
+        List<Stack> stacks = GetStacks();
+
+        foreach(var stack in stacks)
+        {
+            if (sequenceId == id)
+            {
+                realId = stack.Id;
+            }
+
+            sequenceId++;
+        }
+
+        return realId;
+    }
+
+    public static int CardIdToRealId(int cardId, int stackId)
+    {
+        int cardRealId = 0;
+        int sequenceId = 1;
+
+        List<CardDTO> cards = GetStack(stackId).CardsDTO;
+
+        foreach (var card in cards)
+        {
+            if (sequenceId == cardId)
+            {
+                cardRealId = card.Id;
+            }
+
+            sequenceId++;
+        }
+
+        return cardRealId;
     }
 }
